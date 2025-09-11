@@ -12,7 +12,7 @@ jobs:
   archive:
     name: Archive
     runs-on: ubuntu-latest
-    timeout-minutes: 660
+    timeout-minutes: 1000 # Max time out is lower, but allow for future increase
     steps:
 
       - name: Install
@@ -21,7 +21,7 @@ jobs:
           echo "~/.local/bin" >> "$GITHUB_PATH"
           curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp
           chmod a+rx ~/.local/bin/yt-dlp  # Make executable
-          sudo apt install -y tor
+          sudo apt install -y tor ffmpeg
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -75,6 +75,16 @@ jobs:
           commit_user_email: 106889957+norwd@users.noreply.github.com
           commit_options: -s -S
           commit_message: |
-            Download
+            Archive
 
+            **NOTE:** This is an automatic commit. See the archive.yml workflow.
+
+      - name: Create Pull Request
+        if: ${{ steps.auto-commit.outputs.changes_detected == 'true' || steps.auto-commit-cleanup.outputs.changes_detected == 'true' }}
+        run: gh --repo "${{ github.repository }}" pr create --title "${TITLE}" --body "${BODY}" --base "${BASE}" --head "${HEAD}" | tee -a "${GITHUB_STEP_SUMMARY}" | tee -a pr.txt
+        env:
+          BASE: ${{ github.ref_name }}
+          HEAD: ${{ steps.target.outputs.branch }}
+          TITLE: "Archive"
+          BODY: |
             **NOTE:** This is an automatic commit. See the archive.yml workflow.
