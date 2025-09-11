@@ -57,7 +57,7 @@ jobs:
 
       - name: Download
         continue-on-error: true # Don't worry if it could not be mirrored, some individual files may fail but can be manually recovered later
-        timeout-minutes: 595 # max time out is 600, quit and at least try to commit / push what was downloaded so far
+        timeout-minutes: 60 # max time out is 600, quit and at least try to commit / push what was downloaded so far
         run: |
           yt-dlp https://www.youtube.com/@Wren6858 \
             --extract-audio --audio-format m4a \
