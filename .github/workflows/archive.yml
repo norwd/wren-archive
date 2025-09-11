@@ -21,6 +21,7 @@ jobs:
           echo "~/.local/bin" >> "$GITHUB_PATH"
           curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp
           chmod a+rx ~/.local/bin/yt-dlp  # Make executable
+          sudo apt install -y tor
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -42,7 +43,15 @@ jobs:
       - name: Download
         continue-on-error: true # Don't worry if it could not be mirrored, some individual files may fail but can be manually recovered later
         timeout-minutes: 5 # TMP for testing, random order should allow for retry/recover/continue??? # 595 # max time out is 600, quit and at least try to commit / push what was downloaded so far
-        run: yt-dlp https://www.youtube.com/@Wren6858 --extract-audio --audio-format m4a --keep-fragments --no-abort-on-error --concurrent-fragments 8 --playlist-random --restrict-filenames --windows-filenames
+        run: |
+          yt-dlp https://www.youtube.com/@Wren6858 \
+            --extract-audio --audio-format m4a \
+            --restrict-filenames --windows-filenames \
+            --concurrent-fragments 8 \
+            --playlist-random \
+            --sleep-subtitles 5 --sleep-requests 0.75 --sleep-interval 10 --max-sleep-interval 20 \
+            --proxy socks5h://localhost:9050 \
+            --no-abort-on-error
 
       # === PGP KEY SETUP AFTER THIS POINT. ====================================
 
