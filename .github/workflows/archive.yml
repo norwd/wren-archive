@@ -1,0 +1,64 @@
+---
+
+name: Archive
+run-name: Archive
+
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/archive.yml]
+
+jobs:
+  archive:
+    name: Archive
+    runs-on: ubuntu-latest
+    timeout-minutes: 660
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.AUTO_DOWNLOAD_WREN_ARCHIVE }}
+
+      - name: Determine Target
+        id: target
+        run: |
+          grep --invert "^#" << EOF | tee -a "${GITHUB_OUTPUT}"
+
+          # Get the branch that this url will be archived via
+          branch=$(
+            echo "archive/${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}-$(openssl rand -hex 8)"
+          )
+
+          EOF
+
+      - name: Download
+        continue-on-error: true # Don't worry if it could not be mirrored, some individual files may fail but can be manually recovered later
+        timeout-minutes: 600
+        run: exit 1 # TODO
+
+      # === PGP KEY SETUP AFTER THIS POINT. ====================================
+
+      - name: Setup GPG
+        uses: crazy-max/ghaction-import-gpg@v5
+        with:
+          gpg_private_key: ${{ secrets.AUTO_COMMIT_GPG_PRIVATE_KEY_WREN_ARCHIVE }}
+          passphrase: ${{ secrets.AUTO_COMMIT_GPG_PASSPHRASE_WREN_ARCHIVE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Push
+        id: auto-commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          file_pattern: .
+          create_branch: true
+          branch: ${{ steps.target.outputs.branch }}
+          commit_author: norwd <106889957+norwd@users.noreply.github.com>
+          commit_user_name: norwd
+          commit_user_email: 106889957+norwd@users.noreply.github.com
+          commit_options: -s -S
+          commit_message: |
+            Download
+
+            **NOTE:** This is an automatic commit. See the archive.yml workflow.
