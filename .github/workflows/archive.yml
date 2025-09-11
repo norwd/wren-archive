@@ -15,6 +15,13 @@ jobs:
     timeout-minutes: 660
     steps:
 
+      - name: Install
+        run: |
+          mkdir ~/.local/bin
+          echo "~/.local/bin" >> "$GITHUB_PATH"
+          curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp
+          chmod a+rx ~/.local/bin/yt-dlp  # Make executable
+
       - name: Checkout
         uses: actions/checkout@v3
         with:
