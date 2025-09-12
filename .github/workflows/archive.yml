@@ -86,7 +86,7 @@ jobs:
           EOF
 
       - name: Download
-        continue-on-error: true # Don't worry if it could not be mirrored, some individual files may fail but can be manually recovered later
+        # continue-on-error: true # Don't worry if it could not be mirrored, some individual files may fail but can be manually recovered later
         timeout-minutes: 60 # max time out is 600, quit and at least try to commit / push what was downloaded so far
         run: |
           yt-dlp "${{ matrix.url }}" \
