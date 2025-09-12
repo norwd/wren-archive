@@ -37,10 +37,11 @@ jobs:
           echo "~/.local/bin" >> "$GITHUB_PATH"
           curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp
           chmod a+rx ~/.local/bin/yt-dlp
+          sudo apt install -y tor
 
       - id: enumerate
         name: Enumerate
-        run: yt-dlp --simulate https://www.youtube.com/@Wren6858 --print webpage_url --quiet --ignore-errors 2>/dev/null | jq --raw-input | jq --slurp --raw-output '"urls=\(.)"' | tee -a "${GITHUB_OUTPUT}"
+        run: yt-dlp --simulate https://www.youtube.com/@Wren6858 --proxy socks5h://localhost:9050 --print webpage_url --quiet --ignore-errors 2>/dev/null | jq --raw-input | jq --slurp --raw-output '"urls=\(.)"' | tee -a "${GITHUB_OUTPUT}"
 
     outputs:
       urls: ${{ steps.enumerate.outputs.urls }}
@@ -52,6 +53,8 @@ jobs:
     timeout-minutes: 1000 # Max time out is lower, but allow for future increase
 
     strategy:
+      fail-fast: false
+      max-parallel: 256
       matrix:
         url: ${{ fromJSON(needs.enumerate.outputs.urls) }}
 
