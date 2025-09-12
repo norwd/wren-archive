@@ -24,8 +24,9 @@ env:
   GH_TOKEN: ${{ secrets.AUTO_DOWNLOAD_WREN_ARCHIVE }}
 
 jobs:
-  archive:
-    name: Archive
+
+  enumerate:
+    name: Enumerate
     runs-on: ubuntu-latest
     timeout-minutes: 1000 # Max time out is lower, but allow for future increase
     steps:
@@ -35,7 +36,33 @@ jobs:
           mkdir -p ~/.local/bin
           echo "~/.local/bin" >> "$GITHUB_PATH"
           curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp
-          chmod a+rx ~/.local/bin/yt-dlp  # Make executable
+          chmod a+rx ~/.local/bin/yt-dlp
+
+      - id: enumerate
+        name: Enumerate
+        run: yt-dlp --simulate https://www.youtube.com/@Wren6858 --print webpage_url --quiet --ignore-errors 2>/dev/null | jq --raw-input | jq --slurp --raw-output '"urls=\(.)"' | tee -a "${GITHUB_OUTPUT}"
+
+    outputs:
+      urls: ${{ steps.enumerate.outputs.urls }}
+
+  archive:
+    name: Archive
+    needs: enumerate
+    runs-on: ubuntu-latest
+    timeout-minutes: 1000 # Max time out is lower, but allow for future increase
+
+    strategy:
+      matrix:
+        url: ${{ fromJSON(needs.enumerate.outputs.urls) }}
+
+    steps:
+
+      - name: Install
+        run: |
+          mkdir -p ~/.local/bin
+          echo "~/.local/bin" >> "$GITHUB_PATH"
+          curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp
+          chmod a+rx ~/.local/bin/yt-dlp
           sudo apt install -y tor ffmpeg
 
       - name: Checkout
@@ -59,11 +86,9 @@ jobs:
         continue-on-error: true # Don't worry if it could not be mirrored, some individual files may fail but can be manually recovered later
         timeout-minutes: 60 # max time out is 600, quit and at least try to commit / push what was downloaded so far
         run: |
-          yt-dlp https://www.youtube.com/@Wren6858 \
+          yt-dlp "${{ matrix.url }}" \
             --extract-audio --audio-format m4a \
             --restrict-filenames --windows-filenames \
-            --concurrent-fragments 8 \
-            --playlist-random \
             --sleep-subtitles 10 --sleep-requests 10 --sleep-interval 10 --max-sleep-interval 60 \
             --proxy socks5h://localhost:9050 \
             --no-abort-on-error
