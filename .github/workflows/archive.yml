@@ -118,7 +118,7 @@ jobs:
           commit_user_email: 106889957+norwd@users.noreply.github.com
           commit_options: -s -S
           commit_message: |
-            Archive
+            Archive ${{ matrix.url }}
 
             **NOTE:** This is an automatic commit. See the archive.yml workflow.
 
@@ -128,7 +128,7 @@ jobs:
         env:
           BASE: ${{ github.ref_name }}
           HEAD: ${{ steps.target.outputs.branch }}
-          TITLE: "Archive"
+          TITLE: "Archive ${{ matrix.url }}"
           BODY: |
             **NOTE:** This is an automatic commit. See the archive.yml workflow.
 
