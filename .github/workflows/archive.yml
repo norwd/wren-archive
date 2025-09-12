@@ -41,7 +41,7 @@ jobs:
 
       - id: enumerate
         name: Enumerate
-        run: yt-dlp --simulate https://www.youtube.com/@Wren6858 --proxy socks5h://localhost:9050 --print webpage_url --quiet --ignore-errors 2>/dev/null | jq --raw-input | jq --slurp --raw-output '"urls=\(.)"' | tee -a "${GITHUB_OUTPUT}"
+        run: yt-dlp --simulate https://www.youtube.com/@Wren6858 --proxy socks5h://localhost:9050 --print webpage_url --quiet --ignore-errors 2>/dev/null | sort --random-sort | jq --raw-input | jq --slurp --raw-output '"urls=\(.)"' | tee -a "${GITHUB_OUTPUT}"
 
     outputs:
       urls: ${{ steps.enumerate.outputs.urls }}
