@@ -5,6 +5,8 @@ run-name: Archive
 
 on:
 
+  workflow_dispatch:
+
   schedule:
     - cron: '01 02 03 1/1 *'
     - cron: '03 04 05 1/2 *'
